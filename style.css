@@ -164,17 +164,88 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ch
 .btn-cancel { flex:1; padding:12px; border:2px solid var(--gray-lt); border-radius:10px; background:none; font-family:'DM Sans',sans-serif; font-size:.95rem; cursor:pointer; }
 .btn-confirm-del { flex:1; padding:12px; border:none; border-radius:10px; background:var(--red); color:white; font-family:'DM Sans',sans-serif; font-size:.95rem; font-weight:600; cursor:pointer; }
 
+/* ── TABLET ── */
 @media(max-width:900px){
-  .kpi-grid     { grid-template-columns:1fr 1fr; }
-  .charts-row   { grid-template-columns:1fr; }
-  .report-grid  { grid-template-columns:1fr; }
-  .form-grid    { grid-column:1/-1; grid-template-columns:1fr; }
+  .kpi-grid    { grid-template-columns:1fr 1fr; }
+  .charts-row  { grid-template-columns:1fr; }
+  .report-grid { grid-template-columns:1fr 1fr; }
+  .form-grid   { grid-template-columns:1fr; }
+  .form-group.full { grid-column:1/-1; }
 }
+
+/* ── MOBILE (≤ 680px) — sidebar se convierte en drawer ── */
 @media(max-width:680px){
-  .sidebar { width:200px; }
-  .main { margin-left:200px; padding:16px; }
-  .kpi-grid { grid-template-columns:1fr; }
+
+  /* Hamburger button */
+  .menu-toggle {
+    display:flex; align-items:center; justify-content:center;
+    position:fixed; top:14px; left:14px; z-index:300;
+    width:42px; height:42px; border-radius:10px;
+    background:var(--charcoal); border:none; cursor:pointer;
+    box-shadow:0 2px 12px rgba(0,0,0,.25);
+  }
+  .menu-toggle svg { stroke:white; }
+
+  /* Overlay detrás del drawer */
+  .sidebar-overlay {
+    display:block; position:fixed; inset:0;
+    background:rgba(0,0,0,.45); z-index:98;
+    opacity:0; pointer-events:none;
+    transition:opacity .25s;
+  }
+  .sidebar-overlay.open { opacity:1; pointer-events:all; }
+
+  /* Sidebar como drawer */
+  .sidebar {
+    width:260px;
+    transform:translateX(-100%);
+    transition:transform .28s cubic-bezier(.4,0,.2,1);
+    z-index:99;
+  }
+  .sidebar.open { transform:translateX(0); }
+
+  /* Main ocupa todo el ancho */
+  .main { margin-left:0; padding:16px; padding-top:68px; }
+
+  /* KPIs en 1 columna */
+  .kpi-grid    { grid-template-columns:1fr; }
+  .report-grid { grid-template-columns:1fr; }
+
+  /* Page header apila verticalmente */
+  .page-header { flex-direction:column; align-items:flex-start; }
+
+  /* Filter bar en columna */
+  .filter-bar { flex-direction:column; align-items:stretch; gap:10px; }
+  .filter-bar label { margin-bottom:-4px; }
+  .filter-bar input[type="date"],
+  .filter-bar select { width:100%; }
+  .btn-filter,
+  .btn-clear { width:100%; padding:11px; text-align:center; }
+
+  /* Auth card sin padding lateral excesivo */
+  .auth-card { padding:36px 20px; border-radius:16px; }
+
+  /* Modal ocupa más pantalla */
+  .modal { padding:28px 20px; max-width:calc(100vw - 32px); }
+
+  /* Toast más ancho */
+  #toast { left:16px; right:16px; bottom:16px; text-align:center; }
+
+  /* Tabla scrollable horizontal */
+  .card { overflow-x:auto; }
+  .txn-table { min-width:520px; }
+
+  /* Ocultar columna de notas en tabla si es muy estrecha */
+  .txn-table th:nth-child(4),
+  .txn-table td:nth-child(4) { display:none; }
 }
+
+/* Hamburger oculto en desktop/tablet */
+@media(min-width:681px){
+  .menu-toggle    { display:none; }
+  .sidebar-overlay{ display:none; }
+}
+
 ::-webkit-scrollbar { width:6px; }
 ::-webkit-scrollbar-track { background:var(--cream); }
 ::-webkit-scrollbar-thumb { background:var(--gray-lt); border-radius:3px; }

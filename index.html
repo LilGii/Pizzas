@@ -67,7 +67,20 @@
 
 <!-- ══ APP ══ -->
 <div id="app">
-  <aside class="sidebar">
+
+  <!-- Botón hamburguesa (solo móvil) -->
+  <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="3" y1="6"  x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- Overlay oscuro detrás del drawer -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <h1>🍕 PizzaFlow</h1>
       <p>Control de Gastos</p>
@@ -287,5 +300,33 @@
 
 <!-- Lógica de la app -->
 <script type="module" src="app.js"></script>
+
+<!-- Menú hamburguesa (móvil) -->
+<script>
+  const menuBtn     = document.getElementById('menu-toggle');
+  const sidebar     = document.getElementById('sidebar');
+  const overlay     = document.getElementById('sidebar-overlay');
+
+  function openMenu(){
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu(){
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  menuBtn.addEventListener('click', openMenu);
+  overlay.addEventListener('click', closeMenu);
+
+  // Cerrar al navegar (en móvil)
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(window.innerWidth <= 680) closeMenu();
+    });
+  });
+</script>
 </body>
 </html>
