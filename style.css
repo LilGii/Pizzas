@@ -215,7 +215,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ch
   .page-header { flex-direction:column; align-items:flex-start; }
 
   /* Filter bar en columna */
-  .filter-bar { flex-direction:column; align-items:stretch; gap:10px; }
+  .filter-bar {align-items:stretch; gap:10px; }
   .filter-bar label { margin-bottom:-4px; }
   .filter-bar input[type="date"],
   .filter-bar select { width:100%; }
