@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "build-env.sh",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "." }
+    }
+  ]
+}

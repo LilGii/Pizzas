@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PizzaFlow — Control de Gastos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Estilos separados -->
+  <link rel="stylesheet" href="style.css"/>
+  <!--
+    env.js es generado automáticamente por Vercel en build time.
+    En local, crea public/env.js manualmente (ver README).
+    Este script DEBE cargarse antes que app.js.
+  -->
+  <script src="env.js"></script>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading"><div class="spinner"></div></div>
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- DELETE MODAL -->
+<div class="modal-bg" id="del-modal">
+  <div class="modal">
+    <h3>¿Eliminar registro?</h3>
+    <p>Esta acción no puede deshacerse. El movimiento será eliminado permanentemente.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="cancel-del">Cancelar</button>
+      <button class="btn-confirm-del" id="confirm-del">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AUTH ══ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">Pizza<span>Flow</span></div>
+    <div class="auth-subtitle">Sistema de Control de Gastos</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login"    onclick="switchTab('login')">Iniciar sesión</button>
+      <button class="auth-tab"        id="tab-register" onclick="switchTab('register')">Crear cuenta</button>
+    </div>
+    <div id="form-login">
+      <div class="auth-form">
+        <input type="email"    id="l-email" placeholder="Correo electrónico"  autocomplete="email"/>
+        <input type="password" id="l-pass"  placeholder="Contraseña"          autocomplete="current-password"/>
+        <button class="btn-auth" onclick="doLogin()">Entrar</button>
+        <div class="auth-error" id="l-err"></div>
+      </div>
+    </div>
+    <div id="form-register" style="display:none">
+      <div class="auth-form">
+        <input type="text"     id="r-name"  placeholder="Nombre del negocio o usuario"/>
+        <input type="email"    id="r-email" placeholder="Correo electrónico"  autocomplete="email"/>
+        <input type="password" id="r-pass"  placeholder="Contraseña (mín. 6 caracteres)" autocomplete="new-password"/>
+        <input type="password" id="r-pass2" placeholder="Confirmar contraseña"            autocomplete="new-password"/>
+        <button class="btn-auth" onclick="doRegister()">Crear cuenta</button>
+        <div class="auth-error" id="r-err"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h1>🍕 PizzaFlow</h1>
+      <p>Control de Gastos</p>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="goTo('dashboard',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="goTo('nuevo',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nuevo Movimiento
+      </button>
+      <button class="nav-item" onclick="goTo('historial',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        Historial
+      </button>
+      <button class="nav-item" onclick="goTo('reportes',this)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Reportes
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="u-avatar">?</div>
+        <div class="user-email"  id="u-email">—</div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="sec-dashboard" class="section active">
+      <div class="page-header">
+        <div class="page-title">Dashboard <span>General</span></div>
+        <div class="filter-bar" style="margin-bottom:0;padding:10px 14px;gap:8px;">
+          <label>Desde</label><input type="date" id="d-from"/>
+          <label>Hasta</label><input type="date" id="d-to"/>
+          <button class="btn-filter" onclick="loadDash()">Filtrar</button>
+          <button class="btn-clear"  onclick="clearDash()">Limpiar</button>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card income">
+          <div class="kpi-label">Total Ingresos</div>
+          <div class="kpi-value" id="k-income">$0.00</div>
+          <div class="kpi-sub"   id="k-income-n">0 entradas</div>
+        </div>
+        <div class="kpi-card expense">
+          <div class="kpi-label">Total Egresos</div>
+          <div class="kpi-value" id="k-expense">$0.00</div>
+          <div class="kpi-sub"   id="k-expense-n">0 salidas</div>
+        </div>
+        <div class="kpi-card bal-pos" id="k-bal-card">
+          <div class="kpi-label">Balance Neto</div>
+          <div class="kpi-value" id="k-balance">$0.00</div>
+          <div class="kpi-sub"   id="k-bal-lbl">Sin movimientos</div>
+        </div>
+        <div class="kpi-card txn">
+          <div class="kpi-label">Movimientos</div>
+          <div class="kpi-value" id="k-total">0</div>
+          <div class="kpi-sub">registros totales</div>
+        </div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">📈 Flujo de Caja — por fecha</div>
+          <canvas id="lineChart" height="90"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">🍩 Distribución</div>
+          <canvas id="donutChart" height="160"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-header"><div class="table-title">Últimos 10 movimientos</div></div>
+        <div id="recent-wrap"></div>
+      </div>
+    </section>
+
+    <!-- NUEVO MOVIMIENTO -->
+    <section id="sec-nuevo" class="section">
+      <div class="page-header">
+        <div class="page-title">Nuevo <span>Movimiento</span></div>
+      </div>
+      <div class="card" style="max-width:600px;">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Tipo de movimiento *</label>
+            <div class="type-toggle">
+              <button class="type-btn active income"  id="btn-inc" onclick="setType('income')">⬆ Ingreso (Entrada)</button>
+              <button class="type-btn expense"        id="btn-exp" onclick="setType('expense')">⬇ Egreso (Salida)</button>
+            </div>
+            <input type="hidden" id="f-type" value="income"/>
+          </div>
+          <div class="form-group">
+            <label>Monto (MXN) *</label>
+            <input type="number" id="f-amount" placeholder="0.00" min="0.01" step="0.01"/>
+          </div>
+          <div class="form-group">
+            <label>Fecha *</label>
+            <input type="date" id="f-date"/>
+          </div>
+          <div class="form-group">
+            <label>Categoría *</label>
+            <select id="f-category">
+              <optgroup label="— Ingresos —">
+                <option value="Ventas">Ventas del día</option>
+                <option value="Delivery">Delivery / Domicilio</option>
+                <option value="Eventos">Eventos / Catering</option>
+                <option value="Otro ingreso">Otro ingreso</option>
+              </optgroup>
+              <optgroup label="— Egresos —">
+                <option value="Ingredientes">Ingredientes / Insumos</option>
+                <option value="Nómina">Nómina / Sueldos</option>
+                <option value="Renta">Renta / Local</option>
+                <option value="Servicios">Servicios (luz, gas, agua)</option>
+                <option value="Equipo">Equipo / Herramientas</option>
+                <option value="Marketing">Marketing / Publicidad</option>
+                <option value="Mantenimiento">Mantenimiento</option>
+                <option value="Impuestos">Impuestos / Cuotas</option>
+                <option value="Otro egreso">Otro egreso</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Descripción (opcional)</label>
+            <input type="text" id="f-desc" placeholder="Ej: Venta turno noche" maxlength="200"/>
+          </div>
+          <div class="form-group full">
+            <label>Notas adicionales</label>
+            <textarea id="f-notes" placeholder="Detalles adicionales..." maxlength="400"></textarea>
+          </div>
+          <div class="form-group full">
+            <button class="btn-submit" id="btn-save" onclick="saveTxn()">Registrar Movimiento</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORIAL -->
+    <section id="sec-historial" class="section">
+      <div class="page-header">
+        <div class="page-title">Historial de <span>Movimientos</span></div>
+      </div>
+      <div class="filter-bar">
+        <label>Desde</label><input type="date" id="h-from"/>
+        <label>Hasta</label><input type="date" id="h-to"/>
+        <label>Tipo</label>
+        <select id="h-type">
+          <option value="">Todos</option>
+          <option value="income">Ingresos</option>
+          <option value="expense">Egresos</option>
+        </select>
+        <label>Categoría</label>
+        <select id="h-cat">
+          <option value="">Todas</option>
+          <option>Ventas</option><option>Delivery</option><option>Eventos</option><option>Otro ingreso</option>
+          <option>Ingredientes</option><option>Nómina</option><option>Renta</option><option>Servicios</option>
+          <option>Equipo</option><option>Marketing</option><option>Mantenimiento</option>
+          <option>Impuestos</option><option>Otro egreso</option>
+        </select>
+        <button class="btn-filter" onclick="loadHist()">Filtrar</button>
+        <button class="btn-clear"  onclick="clearHist()">Limpiar</button>
+      </div>
+      <div class="card"><div id="hist-wrap"></div></div>
+    </section>
+
+    <!-- REPORTES -->
+    <section id="sec-reportes" class="section">
+      <div class="page-header">
+        <div class="page-title">Reportes <span>Financieros</span></div>
+      </div>
+      <div class="filter-bar">
+        <label>Desde</label><input type="date" id="r-from"/>
+        <label>Hasta</label><input type="date" id="r-to"/>
+        <button class="btn-filter" onclick="loadRep()">Generar reporte</button>
+        <button class="btn-clear"  onclick="clearRep()">Limpiar</button>
+      </div>
+      <div class="report-grid">
+        <div class="report-stat">
+          <div class="report-stat-label">Total Ingresos</div>
+          <div class="report-stat-value" id="rp-income"  style="color:var(--green)">$0</div>
+        </div>
+        <div class="report-stat">
+          <div class="report-stat-label">Total Egresos</div>
+          <div class="report-stat-value" id="rp-expense" style="color:var(--red)">$0</div>
+        </div>
+        <div class="report-stat">
+          <div class="report-stat-label">Balance / Utilidad</div>
+          <div class="report-stat-value" id="rp-balance" style="color:#2980B9">$0</div>
+        </div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">📊 Ingresos vs Egresos por categoría</div>
+          <canvas id="barChart" height="120"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">📋 Distribución de Egresos</div>
+          <canvas id="pieChart" height="160"></canvas>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <div class="table-title" style="margin-bottom:14px;">Desglose por categoría</div>
+        <div id="cat-wrap"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Lógica de la app -->
+<script type="module" src="app.js"></script>
+</body>
+</html>
